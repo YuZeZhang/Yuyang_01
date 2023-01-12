@@ -33,7 +33,7 @@
                 <!-- 可视化区域 -->
                 <el-main style="padding: 0; border:1px solid;flex: 1;" @dragover.prevent>
                     <div :style="{fontSize:size+'px'}" :class="{'active':isActive ,'adaptactive':isadaptActive}">
-                        main
+                        <Canvas></Canvas>
                     </div>
                 </el-main>
                 <el-aside width="220px" style="margin-left: 2px;"><Setting></Setting></el-aside>
@@ -51,6 +51,7 @@
 
 import { ref, toRefs } from 'vue'
 import Setting from '../components/Setting.vue'
+import Canvas from '../components/gojsPic/centerCanvas.vue'
 export default{
     name:"Desktop",
     methods: {
@@ -62,7 +63,8 @@ export default{
         },
     },
     components: {
-        Setting
+        Setting,
+        Canvas
     },
     // computed: {
     //     size: ref(15),

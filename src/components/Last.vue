@@ -81,13 +81,23 @@
       <router-view></router-view>
     </el-tab-pane>
     <el-tab-pane label="结果" name="result" class="eltabs"><Result></Result></el-tab-pane>
-    <el-tab-pane label="日志" name="log" class="eltabs">日志</el-tab-pane>
+    <el-tab-pane label="日志" name="log" class="eltabs">{{ logMessage }}</el-tab-pane>
     <el-tab-pane label="管理" name="manage" class="eltabs">
       <div class="basic_setting_div">
         <div style="margin-bottom: 20px">基本设置</div>
-        <el-select v-model="language" placeholder="语言">
-          <el-option label="中文" value="中文"></el-option>
-        </el-select>
+        <el-form :model="settingForm">
+          <el-form-item label="语言">
+            <el-select v-model="language" placeholder="语言">
+              <el-option label="中文" value="中文"></el-option>
+            </el-select>
+          </el-form-item>
+          <el-form-item label="base power">
+            <el-input v-model="settingForm.base_power"></el-input>
+          </el-form-item>
+          <el-form-item label="frequency">
+            <el-input v-model="settingForm.frequency"></el-input>
+          </el-form-item>
+        </el-form>
       </div>
       <el-tabs type="border-card" class="basic_setting_tabs">
         <el-tab-pane label="算法管理">
@@ -116,6 +126,35 @@
             </el-table-column>
           </el-table>
         </el-tab-pane>
+        <!-- <el-tab-pane label="Power flow">
+          <el-form v-model="powerflowForm" label-width="100px">
+            <el-form-item label="求解器">
+              <el-select v-model="powerflowForm.solver">
+                <el-option label="Newton Raphson" value="Newton Raphson"></el-option>
+                <el-option label="Newton-Raphson in current" value="Newton-Raphson in current"></el-option>
+                <el-option label="Iwamoto-Newton-Raphson" value="Iwamoto-Newton-Raphson"></el-option>
+                <el-option label="Levenberg-Marquardt" value="Levenberg-Marquardt"></el-option>
+                <el-option label="Fast decoupled" value="Fast decoupled"></el-option>
+                <el-option label="Holomorphic Embedding" value="Holomorphic Embedding"></el-option>
+                <el-option label="Gauss-Seidel" value="Gauss-Seidel"></el-option>
+                <el-option label="Linear AC" value="Linear AC"></el-option>
+                <el-option label="Linear DC" value="Linear DC"></el-option>
+              </el-select>
+            </el-form-item>
+            <el-form-item label="准确度">
+              <el-input v-model="powerflowForm.precision"></el-input>
+            </el-form-item>
+            <el-form-item label="Acceleration">
+              <el-input v-model="powerflowForm.Acceleration"></el-input>
+            </el-form-item>
+            <el-form-item label="最大迭代次数">
+              <el-input v-model="powerflowForm.Maxiterations"></el-input>
+            </el-form-item>
+            <el-form-item label="Verbosity">
+              <el-input v-model="powerflowForm.Verbosity"></el-input>
+            </el-form-item>
+          </el-form>
+        </el-tab-pane> -->
       </el-tabs>
     </el-tab-pane>
     </el-tabs>
@@ -496,7 +535,20 @@ export default {
         addmethodsForm: {
           name:'',
           description: ''
-        }
+        },
+        settingForm: {
+          base_power: '',
+          frequency: ''
+        },
+        powerflowForm: {
+          solver: 'Newton Raphson',
+          precision: '',
+          Acceleration: '',
+          Maxiterations: '',
+          Verbosity: ''
+        },
+        // 日志消息:
+        logMessage:''
     }
   },
   methods: {
@@ -662,16 +714,49 @@ export default {
         this.importModelVisible=false
       // })
     },
-    changeState(){      //改变项目运行/停止函数
+    async changeState(){      //改变项目运行/停止函数
       if(!this.running){
-        this.$message({
-          message: '项目启动成功！',
-          type: 'success'
-        });
+        let problemValue=this.$store.state.problemValue
+        let algorithmValue=this.$store.state.algorithmValue
+        let verboseValue=this.$store.state.verboseValue
+        let toleranceValue=this.$store.state.toleranceValue
+        let lodf_toleranceValue=this.$store.state.lodf_toleranceValue
+        let max_iterValue=this.$store.state.max_iterValue
+        let control_qValue=this.$store.state.control_qValue
+        let algorithmParams={}
+        if(problemValue=='Powerflow'){
+          algorithmParams={
+            problemValue: problemValue,
+            solver_type: algorithmValue,
+            verbose: verboseValue,
+            tolerance: toleranceValue,
+            max_iter: max_iterValue,
+            control_q:control_qValue
+          }
+        }
+        else if(problemValue=='OptimalPowerflow'){
+          algorithmParams={
+            problemValue: problemValue,
+            solver_type: algorithmValue,
+            verbose: verboseValue,
+            tolerance: toleranceValue,
+            lodf_tolerance:lodf_toleranceValue,
+            max_iter: max_iterValue,
+            control_q:control_qValue
+          }
+        }
+        const { data: res} = await this.$http.post('http://127.0.0.1:5000/algorithm/pf-opf',algorithmParams)
+        if(res.success!==0){
+            return this.$message.error('运行失败!')
+        }
+        // console.log(this.addmethodsForm)
+        this.$message.success('运行成功!')
+        // console.log(res)
+        this.logMessage=res
       } else {
         this.$message({
           message: '项目运行完毕！',
-          type: 'success'
+          type: 'warning'
         });
       }
       this.running=!this.running
@@ -758,7 +843,7 @@ export default {
 }
 .button_top {
   height: 50px;
-  background-color: #b0acac;
+  background-color: rgb(28, 104, 172);
   color: #fff;
   font-size: 16px;
   border-radius: 0px;
@@ -766,19 +851,19 @@ export default {
   font-weight: 600;
 }
 .button_top:focus{
-  background-color: #b0acac;
-  color: #ffd04b;
+  background-color: #fff;
+  color: rgb(28, 104, 172);
   border-radius: 0px;
-  border-bottom:2px solid #ffd04b;
+  border-bottom:2px solid #fff;
 }
 .button_top:hover{
-  background-color: #b0acac;
-  color: #ffd04b;
+  background-color: rgb(255, 255, 255);
+  color: rgb(28, 104, 172);
   border-radius: 0px;
-  border-bottom:2px solid #ffd04b;
+  border-bottom:2px solid #fff;
 }
 .button_second {
-  color: rgb(20, 20, 20);
+  color: rgb(0, 0, 0);
 }
 .container {
   width: 100%;
@@ -788,7 +873,7 @@ export default {
   // border-top: 2px solid;
   // border-left: 2px solid;
   // border-right: 2px solid;
-  background-color: #b0acac;
+  background-color: rgb(28, 104, 172);
   width: 100%;
   height: 50px !important;
   float: left;
@@ -817,6 +902,7 @@ export default {
 .main_body  {
   // border: 2px solid;
   height: calc(100vh - 130px);
+  padding-top:0px;
 }
 #projectConfiguration {
   float: right;

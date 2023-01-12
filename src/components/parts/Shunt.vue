@@ -26,6 +26,7 @@
             :data="tableData" border 
             style="width: 100%;" 
             class="table"
+            height="700"
             >
             <el-table-column  type="index" :index="indexMethod" fixed="left" />
                 <el-table-column
@@ -53,8 +54,8 @@
                                 v-model="scope.row[item.prop]"
                                 :placeholder="`请输入${item.label}`"
                                 @change="handleEdit(scope.$index, scope.row)">
-                                    <el-option label="True" value="True" />
-                                    <el-option label="False" value="False" />
+                                    <el-option label="True" value="TRUE" />
+                                    <el-option label="False" value="FALSE" />
                                 </el-select>
                             </template>
                         </div>
@@ -93,9 +94,10 @@ import { onMounted, ref, toRefs, reactive } from 'vue'
 // import { ElTable } from 'element-plus'
 export default{
     name:"Area",
-    setup(){
-        const tableData=ref([])
-        const data=reactive({
+    data(){
+        return{
+            keywords:'',
+            tableData:[],
             tableHeader: [
             {
             prop: "name",
@@ -175,33 +177,47 @@ export default{
                 editable: false,
                 type: "input"
             },
-        ],
-            order:1
+            ],
+            order:1,
+            value:'',
+            options:[
+                {value:'name'},
+                {value:'idtag'},
+                {value:'code'},
+                {value:'bus'},
+                {value:'active'},
+                {value:'is_controlled'},
+                {value:'G[MW]'},
+                {value:'B[MVAr]'},
+                {value:'Bmin[MVAr]'},
+                {value:'Bmax[MVAr]'},
+                {value:'Vset[p,u]'},
+                {value:'mttf'},
+                {value:'mttr'},
+            ]
+        }
+    },
+    methods:{
+        async getAndsendData(){
+        let Data=[]
+        this.tableData.forEach((item)=>{
+          Data.push({'name':item.name,'bus':item.bus,'active':item.active,'Y':'19j',})
         })
-        const value = ref('')
-        const options=[
-            {value:'name'},
-            {value:'idtag'},
-            {value:'code'},
-            {value:'bus'},
-            {value:'active'},
-            {value:'is_controlled'},
-            {value:'G[MW]'},
-            {value:'B[MVAr]'},
-            {value:'Bmin[MVAr]'},
-            {value:'Bmax[MVAr]'},
-            {value:'Vset[p,u]'},
-            {value:'mttf'},
-            {value:'mttr'},
-        ]
-        const onAddItem=()=>{
-            tableData.value.push({
-                name:'shunt1@Bus '+data.order+' LV',
+        const { data: res} = await this.$http.post('http://127.0.0.1:5000/algorithm/pf-opf/shunt',Data)
+        if(res.success!==0){
+            return this.$message.error('shunt模块更新失败!')
+        }
+        // console.log(this.addmethodsForm)
+        this.$message.success('shunt模块更新成功!')
+        },
+        onAddItem(){
+            this.tableData.push({
+                name:'shunt1@Bus '+this.order+' LV',
                 id:'',
                 code:'nan',
-                bus:'Bus '+data.order+' LV',
-                active:'True',
-                iscontrolled:'False',
+                bus:'Bus '+this.order+' LV',
+                active:'TRUE',
+                iscontrolled:'FALSE',
                 G:'0.0',
                 B:'19.0',
                 Bmin:"0.0",
@@ -211,22 +227,24 @@ export default{
                 mttr:'0.0',
                 editable:false
             })
-            data.order=data.order+1
+            this.order=this.order+1
+            this.getAndsendData()
+        },
+        deleteRow(index){
+            this.tableData.splice(index, 1)
+            this.getAndsendData()
+        },
+        summitData(row){
+            row.editable=false
+            this.getAndsendData()
         }
+    },
+    setup(){
         const indexMethod = (index) => {
             return index * 1
         }
-        const deleteRow = (index) => {
-            tableData.value.splice(index, 1)
-        }
         return {
-            ...toRefs(data),
-            tableData,
-            onAddItem,
-            options,
-            value,
             indexMethod,
-            deleteRow
         }
     }
 }

@@ -7,6 +7,7 @@ import Setting from '../components/Setting.vue'
 // import Index from '../components/index.vue'
 // import Methods from '../components/Setting_button.vue'
 import Last from '../components/Last.vue'
+import Canvas from '../components/Canvas.vue'
 // import Desktop from '../components/Desktop.vue'
 import Sensuolan from '../components/Shensuolan.vue'
 Vue.use(VueRouter)
@@ -16,6 +17,7 @@ const router = new VueRouter({
     { path: '/',redirect: 'login'},
     { path: '/login', component: Login,  meta: {title: '登录'}},
     { path: '/register', component: Register, meta: {title: '注册'}},
+    { path: '/canvas',component: Canvas, meta: {title:'画布'}},
     { path: '/last', component: Last, meta: {title: '最终版本'},
       redirect: '/desktop',
       children:[

@@ -26,6 +26,7 @@
             :data="tableData" border 
             style="width: 100%;" 
             class="table"
+            height="700"
             >
             <el-table-column  type="index" :index="indexMethod" fixed="left" />
                 <el-table-column
@@ -53,8 +54,8 @@
                                 v-model="scope.row[item.prop]"
                                 :placeholder="`请输入${item.label}`"
                                 @change="handleEdit(scope.$index, scope.row)">
-                                    <el-option label="True" value="True" />
-                                    <el-option label="False" value="False" />
+                                    <el-option label="True" value="TRUE" />
+                                    <el-option label="False" value="FALSE" />
                                 </el-select>
                             </template>
                         </div>
@@ -76,7 +77,7 @@
                       v-show="scope.row.editable"
                       size="small"
                       type="success"
-                      @click="scope.row.editable = false"
+                      @click="summitData(scope.row)"
                       >确定</el-button>
                       <el-button type="danger" size="small" @click.prevent="deleteRow(scope.$index,scope.row)">删除</el-button>
                   </template>
@@ -93,244 +94,265 @@ import { onMounted, ref, toRefs, reactive } from 'vue'
 // import { ElTable } from 'element-plus'
 export default{
     name:"Area",
-    setup(){
-        const tableData=ref([])
-        const data=reactive({
-            tableHeader: [
-            {
-            prop: "name",
-            label: "name",
-            editable: false,
-            type: "input",
-          },
-          {
-            prop: "id",
-            label: "idtag",
-            editable: false,
-            type: "data"
-          },
-          {
-            prop: "code",
-            label: "code",
-            editable: false,
-            type: "input"
-          },
-          {
-            prop: "bus",
-            label: "bus",
-            editable: false,
-            type: "input"
-          },
-          {
-            prop: "active",
-            label: "active",
-            editable: false,
-            type: "select"
-          },
-          {
-            prop: "iscontrolled",
-            label: "is_controlled",
-            editable: false,
-            type: "select"
-          },
-          {
-            prop: "p",
-            label: "P[MW]",
-            editable: false,
-            type: "input"
-          },
-          {
-            prop: "pf",
-            label: "pf",
-            editable: false,
-            type: "input"
-          },
-          {
-            prop: "vset",
-            label: "Vset[p.u.]",
-            editable: false,
-            type: "input"
-          },
-          {
-            prop: "snom",
-            label: "Snom[MVA]",
-            editable: false,
-            type: "input"
-          },
-          {
-            prop: "Qmin",
-            label: "Qmin[MVAr]",
-            editable: false,
-            type: "input"
-          },
-          {
-            prop: "Qmax",
-            label: "Qmax[MVAr]",
-            editable: false,
-            type: "input"
-          },
-          {
-            prop: "use",
-            label: "use_reactive_power_curve",
-            editable: false,
-            type: "select"
-          },
-          {
-            prop: "pmin",
-            label: "Pmin[MW]",
-            editable: false,
-            type: "input"
-          },
-          {
-            prop: "pmax",
-            label: "Pmax[MW]",
-            editable: false,
-            type: "input"
-          },
-          {
-            prop: "R1",
-            label: "R1[p.u.]",
-            editable: false,
-            type: "input"
-          },
-          {
-            prop: "X1",
-            label: "X1[p.u.]",
-            editable: false,
-            type: "input"
-          },
-          {
-            prop: "R0",
-            label: "R0[p.u.]",
-            editable: false,
-            type: "input"
-          },
-          {
-            prop: "X0",
-            label: "X0[p.u.]",
-            editable: false,
-            type: "input"
-          },
-          {
-            prop: "R2",
-            label: "R2[p.u.]",
-            editable: false,
-            type: "input"
-          },
-          {
-            prop: "X2",
-            label: "X2[p.u.]",
-            editable: false,
-            type: "input"
-          },
-          {
-                prop: "cost",
-                label: "Cost[e/MWh]",
-                editable: false,
-                type: "input"
+    data(){
+      return{
+        keywords:'',
+        tableData:[],
+        tableHeader: [
+              {
+              prop: "name",
+              label: "name",
+              editable: false,
+              type: "input",
             },
             {
-            prop: "enabled_dispatch",
-            label: "enabled_dispatch",
-            editable: false,
-            type: "select"
-          },
-          {
-                prop: "mttf",
-                label: "mttf[h]",
-                editable: false,
-                type: "input"
+              prop: "id",
+              label: "idtag",
+              editable: false,
+              type: "data"
             },
             {
-                prop: "mttr",
-                label: "mttr[h]",
-                editable: false,
-                type: "input"
+              prop: "code",
+              label: "code",
+              editable: false,
+              type: "input"
             },
             {
-                prop: "technology",
-                label: "technology",
-                editable: false,
-                type: "input"
+              prop: "bus",
+              label: "bus",
+              editable: false,
+              type: "input"
             },
+            {
+              prop: "active",
+              label: "active",
+              editable: false,
+              type: "select"
+            },
+            {
+              prop: "iscontrolled",
+              label: "is_controlled",
+              editable: false,
+              type: "select"
+            },
+            {
+              prop: "p",
+              label: "P[MW]",
+              editable: false,
+              type: "input"
+            },
+            {
+              prop: "pf",
+              label: "pf",
+              editable: false,
+              type: "input"
+            },
+            {
+              prop: "vset",
+              label: "Vset[p.u.]",
+              editable: false,
+              type: "input"
+            },
+            {
+              prop: "snom",
+              label: "Snom[MVA]",
+              editable: false,
+              type: "input"
+            },
+            {
+              prop: "Qmin",
+              label: "Qmin[MVAr]",
+              editable: false,
+              type: "input"
+            },
+            {
+              prop: "Qmax",
+              label: "Qmax[MVAr]",
+              editable: false,
+              type: "input"
+            },
+            {
+              prop: "use",
+              label: "use_reactive_power_curve",
+              editable: false,
+              type: "select"
+            },
+            {
+              prop: "pmin",
+              label: "Pmin[MW]",
+              editable: false,
+              type: "input"
+            },
+            {
+              prop: "pmax",
+              label: "Pmax[MW]",
+              editable: false,
+              type: "input"
+            },
+            {
+              prop: "R1",
+              label: "R1[p.u.]",
+              editable: false,
+              type: "input"
+            },
+            {
+              prop: "X1",
+              label: "X1[p.u.]",
+              editable: false,
+              type: "input"
+            },
+            {
+              prop: "R0",
+              label: "R0[p.u.]",
+              editable: false,
+              type: "input"
+            },
+            {
+              prop: "X0",
+              label: "X0[p.u.]",
+              editable: false,
+              type: "input"
+            },
+            {
+              prop: "R2",
+              label: "R2[p.u.]",
+              editable: false,
+              type: "input"
+            },
+            {
+              prop: "X2",
+              label: "X2[p.u.]",
+              editable: false,
+              type: "input"
+            },
+            {
+                  prop: "cost",
+                  label: "Cost[e/MWh]",
+                  editable: false,
+                  type: "input"
+              },
+              {
+              prop: "enabled_dispatch",
+              label: "enabled_dispatch",
+              editable: false,
+              type: "select"
+            },
+            {
+                  prop: "mttf",
+                  label: "mttf[h]",
+                  editable: false,
+                  type: "input"
+              },
+              {
+                  prop: "mttr",
+                  label: "mttr[h]",
+                  editable: false,
+                  type: "input"
+              },
+              {
+                  prop: "technology",
+                  label: "technology",
+                  editable: false,
+                  type: "input"
+              },
         ],
-        order:0
-        })
-        const value = ref('')
-        const options=[
-            {value:'name'},
-            {value:'idtag'},
-            {value:'code'},
-            {value:'bus'},
-            {value:'active'},
-            {value:'is_controlled'},
-            {value:'P[MW]'},
-            {value:'pf'},
-            {value:'Vset[p,u]'},
-            {value:'Snom[MVA]'},
-            {value:'Qmin[MVAr]'},
-            {value:'Qmax[MVAr]'},
-            {value:'use_reactive_power_curve'},
-            {value:'Pmin[MW]'},
-            {value:'Pmax[MW]'},
-            {value:'R1[p.u]'},
-            {value:'X1[p.u]'},
-            {value:'R0[p.u]'},
-            {value:'X0[p.u]'},
-            {value:'R2[p.u]'},
-            {value:'X2[p.u]'},
-            {value:'mttf'},
-            {value:'mttr'},
-            {value:'Cost'},
-            {value:'enabled_diapatch'},
-            {value:'technology'},
-        ]
-        const onAddItem=()=>{
-            tableData.value.push({
-                name:'gen '+data.order,
-                id:'',
-                code:'nan',
-                bus:'Bus '+data.order+' HV',
-                active:'True',
-                iscontrolled:'True',
-                p:'0.0',
-                pf:'0.8',
-                vset:'1.0',
-                snom:'9999.0',
-                Qmin:'0.0',
-                Qmax:'0.0',
-                use:'False',
-                pmin:'0.0',
-                pmax:'9999.0',
-                R1:'1e-20',
-                X1:'1e-20',
-                R0:'1e-20',
-                X0:'1e-20',
-                R2:'1e-20',
-                X2:'1e-20',
-                cost:'1.0',
-                enabled_dispatch:'True',
-                mttf:'0.0',
-                mttr:'0.0',
-                technology:'Combined cycle',
-                editable:false
-            })
-            data.order=data.order+1
+        order:0,
+        value:'',
+        options:[
+              {value:'name'},
+              {value:'idtag'},
+              {value:'code'},
+              {value:'bus'},
+              {value:'active'},
+              {value:'is_controlled'},
+              {value:'P[MW]'},
+              {value:'pf'},
+              {value:'Vset[p,u]'},
+              {value:'Snom[MVA]'},
+              {value:'Qmin[MVAr]'},
+              {value:'Qmax[MVAr]'},
+              {value:'use_reactive_power_curve'},
+              {value:'Pmin[MW]'},
+              {value:'Pmax[MW]'},
+              {value:'R1[p.u]'},
+              {value:'X1[p.u]'},
+              {value:'R0[p.u]'},
+              {value:'X0[p.u]'},
+              {value:'R2[p.u]'},
+              {value:'X2[p.u]'},
+              {value:'mttf'},
+              {value:'mttr'},
+              {value:'Cost'},
+              {value:'enabled_diapatch'},
+              {value:'technology'},
+        ],
         }
+    },
+    methods:{
+      async getAndsendData(){
+        let Data=[]
+        this.tableData.forEach((item)=>{
+          Data.push({'name':item.name,'bus':item.bus,'active':item.active,'P':item.p,
+        'Vset':item.vset,'Snom':item.snom,'Qmin':item.Qmin,'Qmax':item.Qmax,'Pmin':item.pmin,
+        'Pmax':item.pmax,'Cost':item.cost})
+        })
+        const { data: res} = await this.$http.post('http://127.0.0.1:5000/algorithm/pf-opf/controlled_generator',Data)
+        if(res.success!==0){
+            return this.$message.error('controlled_generator模块更新失败!')
+        }
+        // console.log(this.addmethodsForm)
+        this.$message.success('controlled_generator模块更新成功!')
+      },
+      onAddItem(){
+        this.tableData.push({
+            name:'gen '+this.order,
+            id:'',
+            code:'nan',
+            bus:'Bus '+this.order+' HV',
+            active:'TRUE',
+            iscontrolled:'True',
+            p:'0.0',
+            pf:'0.8',
+            vset:'1.0',
+            snom:'9999.0',
+            Qmin:'0.0',
+            Qmax:'0.0',
+            use:'False',
+            pmin:'0.0',
+            pmax:'9999.0',
+            R1:'1e-20',
+            X1:'1e-20',
+            R0:'1e-20',
+            X0:'1e-20',
+            R2:'1e-20',
+            X2:'1e-20',
+            cost:'1.0',
+            enabled_dispatch:'True',
+            mttf:'0.0',
+            mttr:'0.0',
+            technology:'Combined cycle',
+            editable:false
+        })
+        this.order=this.order+1
+        this.getAndsendData()
+      },
+     deleteRow(index){
+        this.tableData.splice(index, 1)
+        this.getAndsendData()
+      },
+      summitData(row){
+        row.editable=false
+        this.getAndsendData()
+      }
+    },
+
+
+    setup(){
         const indexMethod = (index) => {
             return index * 1
         }
-        const deleteRow = (index) => {
-            tableData.value.splice(index, 1)
-        }
         return {
-            ...toRefs(data),
-            tableData,
-            onAddItem,
-            options,
-            value,
             indexMethod,
-            deleteRow
         }
     }
 }

@@ -36,9 +36,9 @@
               </el-aside>
               </div>
               <!-- 可视化区域 -->
-              <el-main style="padding: 0; border:1px solid;height: 700px;" @dragover.prevent>
+              <el-main style="padding: 0;height: 700px;" @dragover.prevent>
                   <div :style="{fontSize:size+'px'}" :class="{'active':isActive ,'adaptactive':isadaptActive}">
-                      main
+                      <Canvas></Canvas>
                   </div>
               </el-main>
              <div class="curr-contents_right" ref="outerDiv_right">
@@ -65,8 +65,9 @@
 
 
 import { ref, toRefs } from 'vue'
-import Setting from '../components/Setting1.vue'
+import Setting from '../components/Setting.vue'
 import Name from './moubanname.vue'
+import Canvas from '../components/gojsPic/centerCanvas.vue'
 export default{
   name:"Desktop",
   data() {
@@ -125,7 +126,8 @@ export default{
   },
   components: {
     Setting,
-    Name
+    Name,
+    Canvas
 },
   // computed: {
   //     size: ref(15),
@@ -262,7 +264,7 @@ export default{
 .pack-ups_right {
   height: 100%;
   position: absolute;
-  right: 200px;
+  right: 190px;
   top: 0;
   display: flex;
   justify-content: center;

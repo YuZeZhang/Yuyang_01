@@ -26,6 +26,7 @@
             :data="tableData" border 
             style="width: 100%;" 
             class="table"
+            height="700"
             >
                 <el-table-column
                     :prop="index"
@@ -60,6 +61,7 @@ export default{
                 mttf:'mttf[h]',
                 mttr:'mttr[h]',
             },
+            keywords:''
         })
         const value = ref('')
         const options=[

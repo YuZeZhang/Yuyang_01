@@ -26,6 +26,7 @@
             :data="tableData" border 
             style="width: 100%;" 
             class="table"
+            height="700"
             >
             <el-table-column  type="index" :index="indexMethod" fixed="left" />
                 <el-table-column
@@ -53,8 +54,8 @@
                                 v-model="scope.row[item.prop]"
                                 :placeholder="`请输入${item.label}`"
                                 @change="handleEdit(scope.$index, scope.row)">
-                                    <el-option label="True" value="True" />
-                                    <el-option label="False" value="False" />
+                                    <el-option label="True" value="TRUE" />
+                                    <el-option label="False" value="FALSE" />
                                 </el-select>
                             </template>
                         </div>
@@ -76,7 +77,7 @@
                       v-show="scope.row.editable"
                       size="small"
                       type="success"
-                      @click="scope.row.editable = false"
+                      @click="summitData(scope.row)"
                       >确定</el-button>
                       <el-button type="danger" size="small" @click.prevent="deleteRow(scope.$index,scope.row)">删除</el-button>
                   </template>
@@ -93,10 +94,11 @@ import { onMounted, ref, toRefs, reactive } from 'vue'
 // import { ElTable } from 'element-plus'
 export default{
     name:"Area",
-    setup(){
-        const tableData=ref([])
-        const data=reactive({
-            tableHeader: [
+    data(){
+      return{
+        tableData:[],
+        keywords:'',
+        tableHeader: [
             {
             prop: "name",
             label: "name",
@@ -284,10 +286,9 @@ export default{
                 type: "data"
             },
         ],
-            order:0
-        })
-        const value = ref('')
-        const options=[
+        order:0,
+        value:'',
+        options:[
             {value:'name'},
             {value:'idtag'},
             {value:'code'},
@@ -297,64 +298,78 @@ export default{
             {value:'mttf'},
             {value:'mttr'},
         ]
-        const onAddItem=()=>{
-            tableData.value.push({
-                name:'branch '+data.order,
-                id:'',
-                code:'nan',
-                busfrom:'Bus '+data.order +' HV',
-                busto:'Bus '+data.order +' HV',
-                active:'True',
-                rate:'0.0',
-                contingency:'1.0',
-                contingency1:'True',
-                monitor:'True',
-                mttf:'0.0',
-                mttr:'0.0',
-                R:'0.0',
-                X:'0.0',
-                B:'0.0',
-                R0:'1e-20',
-                X0:'1e-20',
-                B0:'1e-20',
-                R2:'1e-20',
-                X2:'1e-20',
-                B2:'1e-20',
-                tolerance:'0.0',
-                length:'1.0',
-                temp_base:'20.0',
-                temp_oper:'20.0',
-                alpha:'0.0033',
-                cost:'0.0',
-                r:'0.0',
-                x:'0.0',
-                fault:'0.5',
-                template:'Branch Template',
-                editable:false
+      }
+    },
+    methods: {
+      async getAndsendData(){
+        let Data=[]
+        this.tableData.forEach((item)=>{
+          Data.push({'name':item.name,'bus_from':item.busfrom,'bus_to':item.busto,'active':item.active,
+        'rate':item.rate,'mttf':item.mttf,'mttr':item.mttr,'R':item.R,'X':item.X,'G':'0','B':item.B,
+        'tap_module':item.alpha,'angle':'0','is_transformer':item.monitor})
+        })
+        const { data: res} = await this.$http.post('http://127.0.0.1:5000/algorithm/pf-opf/branch',Data)
+        if(res.success!==0){
+        return this.$message.error('branch模块更新失败!')
+      }
+      // console.log(this.addmethodsForm)
+      this.$message.success('branch模块更新成功!')
+      },
+      onAddItem(){
+        this.tableData.push({
+            name:'branch '+this.order,
+            id:'',
+            code:'nan',
+            busfrom:'Bus '+this.order +' HV',
+            busto:'Bus '+this.order +' HV',
+            active:'TRUE',
+            rate:'0.0',
+            contingency:'1.0',
+            contingency1:'TRUE',
+            monitor:'TRUE',
+            mttf:'0.0',
+            mttr:'0.0',
+            R:'0.0',
+            X:'0.0',
+            B:'0.0',
+            R0:'1e-20',
+            X0:'1e-20',
+            B0:'1e-20',
+            R2:'1e-20',
+            X2:'1e-20',
+            B2:'1e-20',
+            tolerance:'0.0',
+            length:'1.0',
+            temp_base:'20.0',
+            temp_oper:'20.0',
+            alpha:'0.0033',
+            cost:'0.0',
+            r:'0.0',
+            x:'0.0',
+            fault:'0.5',
+            template:'Branch Template',
+            editable:false
             })
-            data.order=data.order+1
-        }
-        const indexMethod = (index) => {
-            return index * 1
-        }
-        const deleteRow = (index) => {
-            tableData.value.splice(index, 1)
-        }
-        return {
-            ...toRefs(data),
-            tableData,
-            onAddItem,
-            options,
-            value,
-            indexMethod,
-            deleteRow
-        }
+        this.order=this.order+1
+        this.getAndsendData()
+      },
+      indexMethod(index){
+        return index * 1
+      },
+      deleteRow(index){
+        this.tableData.splice(index, 1)
+        this.getAndsendData()
+      },
+      summitData(row){
+        row.editable=false
+        this.getAndsendData()
+      }
     }
 }
 </script>
 
 
-<style>
+<style lang="less" scoped>
 .header .el-select{
     width:100px;
 }

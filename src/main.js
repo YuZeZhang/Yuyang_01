@@ -2,6 +2,14 @@ import Vue from 'vue'
 import App from './App.vue'
 import router from './router'
 import store from './store'
+// gojs
+import "babel-polyfill"
+import iView from 'iview'
+import 'iview/dist/styles/iview.css'
+Vue.use(iView)
+import gojs from 'gojs'
+Vue.prototype.go = gojs
+/* eslint-disable no-new */
 // 导入element ui
 import './plugins/element.js'
 import 'element-ui/lib/theme-chalk/index.css'

@@ -26,6 +26,7 @@
             :data="tableData" border 
             style="width:100%"
             class="table"
+            height="700"
             >
                 <el-table-column  type="index" :index="indexMethod" fixed="left" />
                 <el-table-column
@@ -53,8 +54,8 @@
                                 v-model="scope.row[item.prop]"
                                 :placeholder="`请输入${item.label}`"
                                 @change="handleEdit(scope.$index, scope.row)">
-                                    <el-option label="True" value="True" />
-                                    <el-option label="False" value="False" />
+                                    <el-option label="True" value="TRUE" />
+                                    <el-option label="False" value="FALSE" />
                                 </el-select>
                             </template>
                         </div>
@@ -76,7 +77,7 @@
                       v-show="scope.row.editable"
                       size="small"
                       type="success"
-                      @click="scope.row.editable = false"
+                      @click="summitData(scope.row)"
                       >确定</el-button>
                       <el-button type="danger" size="small" @click.prevent="deleteRow(scope.$index,scope.row)">删除</el-button>
                   </template>
@@ -93,9 +94,10 @@ import { onMounted, ref, toRefs, reactive } from 'vue'
 // import { ElTable } from 'element-plus'
 export default{
     name:"Area",
-    setup(){
-        const tableData=ref([])
-        const data=reactive({
+    data(){
+        return{
+            tableData:[],
+            keywords:'',
             tableHeader: [
             {
                 prop: "name",
@@ -182,13 +184,9 @@ export default{
                 type: "input"
             },
             ],
-            order:1
-        })
-        const indexMethod = (index) => {
-            return index * 1
-        }
-        const value = ref('')
-        const options=[
+            order:1,
+            value:'',
+            options:[
             {value:'name'},
             {value:'idtag'},
             {value:'code'},
@@ -203,14 +201,30 @@ export default{
             {value:'mttf'},
             {value:'mttr'},
             {value:'Cost'},
-        ]
-        const onAddItem=()=>{
-            tableData.value.push({
-                name:'Load1@Bus '+data.order+' HV',
+            ],
+        }
+    },
+    methods:{
+        async getAndsendData(){
+        let Data=[]
+        this.tableData.forEach((item)=>{
+          Data.push({'name':item.name,'bus':item.bus,'active':item.active,
+        'Z':'0j','I':'0j','S':item.p})
+        })
+        const { data: res} = await this.$http.post('http://127.0.0.1:5000/algorithm/pf-opf/load',Data)
+        if(res.success!==0){
+            return this.$message.error('load模块更新失败!')
+        }
+        // console.log(this.addmethodsForm)
+        this.$message.success('load模块更新成功!')
+        },
+        onAddItem(){
+            this.tableData.push({
+                name:'Load1@Bus '+this.order+' HV',
                 id:'',
                 code:'nan',
-                bus:'Bus '+data.order+' HV',
-                active:'True',
+                bus:'Bus '+this.order+' HV',
+                active:'TRUE',
                 p:'10.0',
                 q:'10.0',
                 lr:'0.0',
@@ -222,26 +236,32 @@ export default{
                 cost:'1200.0',
                 editable:false
             }),
-            data.order=data.order+1
+            this.order=this.order+1
+            this.getAndsendData()
+        },
+        deleteRow(index) {
+            this.tableData.splice(index, 1)
+            this.getAndsendData()
+        },
+        summitData(row){
+        row.editable=false
+        this.getAndsendData()
+      }
+    },
+    setup(){
+        const indexMethod = (index) => {
+            return index * 1
         }
-        const deleteRow = (index) => {
-            tableData.value.splice(index, 1)
-        }
+       
         return {
-            ...toRefs(data),
-            tableData,
-            onAddItem,
-            options,
-            value,
             indexMethod,
-            deleteRow,
         }
     }
 }
 </script>
 
 
-<style>
+<style lang="less" scoped>
 .header .el-select{
     width:100px;
 }
@@ -256,9 +276,9 @@ export default{
 .header .el-button{
     border-color: black;
 }
-.el-table{
+.table{
     font-size: 1px;
-    height: 450px;
+    height: 760px;
 }
 .el-table .cell{
     padding:0;

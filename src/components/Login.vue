@@ -91,7 +91,8 @@ export default {
       this.$refs.loginFormRef.validate(async valid => {
         if (!valid) return
         Cookies.set('username',this.loginForm.username)
-        const { data: res } = await this.$http.post('login', this.loginForm)
+        const { data: res } = await this.$http.post('http://127.0.0.1:5000/login', {'user':this.loginForm.username,'pwd':this.loginForm.password})
+        console.log(res)
         if (res.meta.status !== 200) return this.$message.error('登录失败!')
         this.$message.success('登录成功')
         window.sessionStorage.setItem('token', res.data.token)

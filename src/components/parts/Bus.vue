@@ -75,7 +75,7 @@
                     v-show="scope.row.editable"
                     size="small"
                     type="success"
-                    @click="scope.row.editable = false"
+                    @click="summitData(scope.row)"
                     >确定</el-button>
                     <el-button type="danger" size="small" @click.prevent="deleteRow(scope.$index,scope.row)">删除</el-button>
                 </template>
@@ -90,13 +90,11 @@ import { computed, ref, toRefs, reactive } from 'vue'
 // import { ElTable } from 'element-plus'
 export default{
     name:'bus',
-    setup(){
-        const tableData=ref([])
-        const keywords = ref('')
-        const data=reactive({
-            keywords:'',
-            
-            tableHeader: [
+    data(){
+      return{
+        tableData:[],
+        keywords:'',
+        tableHeader: [
             {
             prop: "name",
             label: "name",
@@ -246,81 +244,97 @@ export default{
             label: "latitude[deg]",
             editable: false,
             type: "input"
-          }
-            ],
+          }],
+        value:'',
+        options:[
+          {value:'name'},
+          {value:'idtag'},
+          {value:'code'},
+          {value:'active'},
+          {value:'is_slack'},
+          {value:'is_dc'},
+          {value:'Vnom'},
+          {value:'Vm0'},
+          {value:'Vmin'},
+          {value:'Vmax'},
+          {value:'Va0'},
+          {value:'angle_min'},
+          {value:'angle_max'},
+          {value:'r_fault'},
+          {value:'x_fault'},
+          {value:'x'},
+          {value:'y'},
+          {value:'h'},
+          {value:'w'},
+          {value:'country'},
+          {value:'area'},
+          {value:'zone'},
+          {value:'substation'},
+          {value:'longitude'},
+        ]
+      }
+    },
+    methods:{
+      async getAndsendData(){
+        let Data=[]
+        this.tableData.forEach((item)=>{
+          Data.push({'name':item.name,'active':item.active,'is_slack':item.isslack,'Vnom':item.vnom,
+        'Vmin':item.vmin,'Vmax':item.vmax,'Zf':'0j','x':item.x,'y':item.y,'h':item.h,'w':item.w})
         })
+        const { data: res} = await this.$http.post('http://127.0.0.1:5000/algorithm/pf-opf/bus',Data)
+        if(res.success!==0){
+          return this.$message.error('BUS模块更新失败!')
+        }
+        // console.log(this.addmethodsForm)
+        this.$message.success('BUS模块更新成功!')
+      },
+      onAddItem(){
+        this.tableData.push({
+          name:'Bus 1',
+          id: '',
+          code:'',
+          active:'True',
+          isslack:'False',
+          isdc:'False',
+          vnom:'10',
+          vm0:'1',
+          vmin:'0.9',
+          vmax:'1.1',
+          va0:'0',
+          anglemin:'-6.28',
+          anglemax:'6.28',
+          rfault:'0.0',
+          xfault:'0.0',
+          x:'0',
+          y:'0',
+          h:'0',
+          w:'0',
+          count:'Default country',
+          area:'Default area',
+          zone:'Default zone',
+          sub:'Default substation',
+          long:'0.0',
+          lati:'0.0',
+          editable:false
+        })
+        // console.log(this.tableData)
+        this.getAndsendData()
+      },
+      deleteRow(index){
+        this.tableData.splice(index, 1)
+        this.getAndsendData()
+      },
+      summitData(row){
+        row.editable=false
+        this.getAndsendData()
+      }
+    },
+    setup(){
         const indexMethod = (index) => {
             return index * 1
         }
-        const value = ref('')
-        const options=[
-            {value:'name'},
-            {value:'idtag'},
-            {value:'code'},
-            {value:'active'},
-            {value:'is_slack'},
-            {value:'is_dc'},
-            {value:'Vnom'},
-            {value:'Vm0'},
-            {value:'Vmin'},
-            {value:'Vmax'},
-            {value:'Va0'},
-            {value:'angle_min'},
-            {value:'angle_max'},
-            {value:'r_fault'},
-            {value:'x_fault'},
-            {value:'x'},
-            {value:'y'},
-            {value:'h'},
-            {value:'w'},
-            {value:'country'},
-            {value:'area'},
-            {value:'zone'},
-            {value:'substation'},
-            {value:'longitude'},
-        ]
-        const onAddItem=()=>{
-            tableData.value.push({
-                name:'Bus 1',
-                id: '',
-                code:'',
-                active:'True',
-                isslack:'False',
-                isdc:'False',
-                vnom:'10',
-                vm0:'1',
-                vmin:'0.9',
-                vmax:'1.1',
-                va0:'0',
-                anglemin:'-6.28',
-                anglemax:'6.28',
-                rfault:'0.0',
-                xfault:'0.0',
-                x:'0',
-                y:'0',
-                h:'0',
-                w:'0',
-                count:'Default country',
-                area:'Default area',
-                zone:'Default zone',
-                sub:'Default substation',
-                long:'0.0',
-                lati:'0.0',
-                editable:false
-            })
-        }
-        const deleteRow = (index) => {
-            tableData.value.splice(index, 1)
-        } 
         return {
-            ...toRefs(data),
-            tableData,
-            onAddItem,
-            options,
-            value,
             indexMethod,
-            keywords,
-            deleteRow,
         }
     }
 }

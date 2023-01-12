@@ -26,6 +26,7 @@
             :data="tableData" border 
             style="width: 100%;" 
             class="table"
+            height="700"
             >
             <el-table-column  type="index" :index="indexMethod" fixed="left" />
                 <el-table-column
